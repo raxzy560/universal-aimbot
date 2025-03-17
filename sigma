@@ -1,5 +1,4 @@
 
-
 local player = Solara.Players.LocalPlayer -- Adjusted to Solara's player system
 local character = player.Character or player.CharacterAdded:Wait()
 local humanoid = character:WaitForChild("Humanoid")
