@@ -1,4 +1,4 @@
--- Assuming that Solara uses a specific player system, let's integrate the existing GUI into Solara.
+
 
 local player = Solara.Players.LocalPlayer -- Adjusted to Solara's player system
 local character = player.Character or player.CharacterAdded:Wait()
