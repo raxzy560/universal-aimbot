@@ -1,191 +1,229 @@
+-- Main variables
+local player = game.Players.LocalPlayer
+local mouse = player:GetMouse()
+local UIS = game:GetService("UserInputService")
+local camera = game.Workspace.CurrentCamera
 
-local player = Solara.Players.LocalPlayer -- Adjusted to Solara's player system
-local character = player.Character or player.CharacterAdded:Wait()
-local humanoid = character:WaitForChild("Humanoid")
-local camera = workspace.CurrentCamera
+-- GUI setup
+local screenGui = Instance.new("ScreenGui")
+screenGui.Parent = player.PlayerGui
+screenGui.Name = "RaxzyScriptGUI"
 
--- Initial Key: raxzyONtop
-local initialKey = "raxzyONtop"
+local tabFrame = Instance.new("Frame")
+tabFrame.Parent = screenGui
+tabFrame.Size = UDim2.new(0, 300, 0, 400)
+tabFrame.Position = UDim2.new(0.5, -150, 0.5, -200)
+tabFrame.BackgroundColor3 = Color3.fromRGB(255, 182, 193)
+tabFrame.Visible = true
 
--- Private/Paid Key: 80BADF611E8BE210EBD5E767B
-local privateKey = "80BADF611E8BE210EBD5E767B"
+-- Make the GUI draggable
+local dragToggle = false
+local dragInput, dragStart, startPos
+tabFrame.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+        dragToggle = true
+        dragStart = input.Position
+        startPos = tabFrame.Position
+    end
+end)
 
--- Create GUI for Solara (assuming Solara has its own GUI system)
-local ScreenGui = Instance.new("ScreenGui")
-ScreenGui.Name = "LockOnGui"
-ScreenGui.Parent = player.PlayerGui -- Make sure this is compatible with Solara's PlayerGui system
-ScreenGui.BackgroundColor3 = Color3.fromRGB(255, 182, 193) -- Pink background for the entire GUI
+tabFrame.InputChanged:Connect(function(input)
+    if dragToggle and input.UserInputType == Enum.UserInputType.MouseMovement then
+        local delta = input.Position - dragStart
+        tabFrame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+    end
+end)
 
--- Add a "Raxzy" label at the top of the GUI
-local TitleLabel = Instance.new("TextLabel")
-TitleLabel.Size = UDim2.new(0, 200, 0, 50)
-TitleLabel.Position = UDim2.new(0.5, -100, 0, 10)
-TitleLabel.Text = "Raxzy"
-TitleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-TitleLabel.TextSize = 24
-TitleLabel.BackgroundTransparency = 1
-TitleLabel.Parent = ScreenGui
+tabFrame.InputEnded:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+        dragToggle = false
+    end
+end)
 
--- Tab Buttons (Tabs under "Raxzy")
-local TabButtonFrame = Instance.new("Frame")
-TabButtonFrame.Size = UDim2.new(0, 600, 0, 50)
-TabButtonFrame.Position = UDim2.new(0.5, -300, 0, 60)
-TabButtonFrame.BackgroundColor3 = Color3.fromRGB(255, 182, 193) -- Pink background for tab buttons
-TabButtonFrame.BackgroundTransparency = 0.5
-TabButtonFrame.Parent = ScreenGui
+-- Create Close Button
+local closeButton = Instance.new("TextButton")
+closeButton.Parent = tabFrame
+closeButton.Size = UDim2.new(0, 50, 0, 50)
+closeButton.Position = UDim2.new(1, -50, 0, 0)
+closeButton.Text = "X"
+closeButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+closeButton.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
 
--- Free Tab (ESP) and Private/Paid Tab (Key system)
-local FreeTab = Instance.new("TextButton")
-FreeTab.Size = UDim2.new(0, 300, 0, 50)
-FreeTab.Position = UDim2.new(0, 0, 0, 0)
-FreeTab.Text = "Free"
-FreeTab.TextColor3 = Color3.fromRGB(255, 255, 255)
-FreeTab.BackgroundColor3 = Color3.fromRGB(255, 105, 180) -- Lighter pink for the Free tab
-FreeTab.Parent = TabButtonFrame
+closeButton.MouseButton1Click:Connect(function()
+    screenGui:Destroy()
+end)
 
-local PaidTab = Instance.new("TextButton")
-PaidTab.Size = UDim2.new(0, 300, 0, 50)
-PaidTab.Position = UDim2.new(0, 300, 0, 0)
-PaidTab.Text = "Private/Paid"
-PaidTab.TextColor3 = Color3.fromRGB(255, 255, 255)
-PaidTab.BackgroundColor3 = Color3.fromRGB(255, 105, 180) -- Lighter pink for the Paid tab
-PaidTab.Parent = TabButtonFrame
+-- Create Aimbot Button
+local aimbotButton = Instance.new("TextButton")
+aimbotButton.Parent = tabFrame
+aimbotButton.Size = UDim2.new(0, 200, 0, 50)
+aimbotButton.Position = UDim2.new(0.5, -100, 0, 50)
+aimbotButton.Text = "Toggle Aimbot"
+aimbotButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+aimbotButton.BackgroundColor3 = Color3.fromRGB(255, 105, 180)
 
--- Create pages for each tab
-local FreePage = Instance.new("Frame")
-FreePage.Size = UDim2.new(0, 600, 0, 300)
-FreePage.Position = UDim2.new(0.5, -300, 0, 120)
-FreePage.BackgroundTransparency = 1
-FreePage.Visible = false -- Initially hidden, will be shown after key is entered
-FreePage.Parent = ScreenGui
+-- Aimbot functionality
+local aimbotEnabled = false
 
-local PaidPage = Instance.new("Frame")
-PaidPage.Size = UDim2.new(0, 600, 0, 300)
-PaidPage.Position = UDim2.new(0.5, -300, 0, 120)
-PaidPage.BackgroundTransparency = 1
-PaidPage.Visible = false
-PaidPage.Parent = ScreenGui
-
--- Free Tab: ESP (Extra Sensory Perception)
-local ESPLabel = Instance.new("TextLabel")
-ESPLabel.Size = UDim2.new(0, 200, 0, 50)
-ESPLabel.Position = UDim2.new(0.5, -100, 0, 70)
-ESPLabel.Text = "ESP (Free Feature)"
-ESPLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-ESPLabel.TextSize = 18
-ESPLabel.BackgroundTransparency = 1
-ESPLabel.Parent = FreePage
-
--- Placeholder ESP functionality (can be customized further for real ESP effects)
-local function createESP(player)
-    local espPart = Instance.new("Part")
-    espPart.Size = Vector3.new(1, 1, 1)
-    espPart.Shape = Enum.PartType.Ball
-    espPart.Color = Color3.fromRGB(255, 0, 0) -- Red ESP
-    espPart.Anchored = true
-    espPart.CanCollide = false
-    espPart.Parent = workspace
-    espPart.Position = player.Character.PrimaryPart.Position + Vector3.new(0, 5, 0)
-
-    -- Simple loop to update ESP position (we can improve this for real ESP effects)
-    game:GetService("RunService").Heartbeat:Connect(function()
-        if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
-            espPart.Position = player.Character.HumanoidRootPart.Position + Vector3.new(0, 5, 0)
+local function aimbot()
+    local closestPlayer = nil
+    local shortestDistance = math.huge
+    -- Find the nearest player and aim at their head
+    for _, target in pairs(game.Players:GetPlayers()) do
+        if target ~= player and target.Character and target.Character:FindFirstChild("Head") then
+            local distance = (player.Character.HumanoidRootPart.Position - target.Character.HumanoidRootPart.Position).Magnitude
+            if distance < shortestDistance then
+                closestPlayer = target
+                shortestDistance = distance
+            end
         end
-    end)
+    end
+    if closestPlayer then
+        local targetHead = closestPlayer.Character.Head
+        -- Set the camera to look at the player's head
+        camera.CFrame = CFrame.new(camera.CFrame.Position, targetHead.Position)
+    end
 end
 
--- Button to toggle ESP on the Free Page
-local ESPButton = Instance.new("TextButton")
-ESPButton.Size = UDim2.new(0, 200, 0, 50)
-ESPButton.Position = UDim2.new(0.5, -100, 0, 150)
-ESPButton.Text = "Toggle ESP"
-ESPButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-ESPButton.BackgroundColor3 = Color3.fromRGB(255, 105, 180) -- Pink button
-ESPButton.Parent = FreePage
+aimbotButton.MouseButton1Click:Connect(function()
+    aimbotEnabled = not aimbotEnabled
+    if aimbotEnabled then
+        print("Aimbot Enabled")
+    else
+        print("Aimbot Disabled")
+    end
+end)
 
-ESPButton.MouseButton1Click:Connect(function()
-    for _, targetPlayer in pairs(Solara.Players:GetPlayers()) do
-        if targetPlayer ~= player then
-            createESP(targetPlayer)
+-- Keybind for Aimbot (Press 'E' to activate)
+UIS.InputBegan:Connect(function(input)
+    if input.KeyCode == Enum.KeyCode.E and aimbotEnabled then
+        aimbot()
+    end
+end)
+
+-- Create Fly Button
+local flyButton = Instance.new("TextButton")
+flyButton.Parent = tabFrame
+flyButton.Size = UDim2.new(0, 200, 0, 50)
+flyButton.Position = UDim2.new(0.5, -100, 0, 110)
+flyButton.Text = "Toggle Fly"
+flyButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+flyButton.BackgroundColor3 = Color3.fromRGB(255, 105, 180)
+
+-- Fly functionality
+local bodyGyro, bodyVelocity
+local flying = false
+
+local function enableFly()
+    bodyGyro = Instance.new("BodyGyro")
+    bodyVelocity = Instance.new("BodyVelocity")
+    bodyGyro.MaxTorque = Vector3.new(400000, 400000, 400000)
+    bodyGyro.CFrame = player.Character.HumanoidRootPart.CFrame
+    bodyGyro.Parent = player.Character.HumanoidRootPart
+    bodyVelocity.MaxForce = Vector3.new(400000, 400000, 400000)
+    bodyVelocity.Velocity = Vector3.new(0, 50, 0)
+    bodyVelocity.Parent = player.Character.HumanoidRootPart
+end
+
+local function disableFly()
+    if bodyGyro then
+        bodyGyro:Destroy()
+    end
+    if bodyVelocity then
+        bodyVelocity:Destroy()
+    end
+end
+
+flyButton.MouseButton1Click:Connect(function()
+    flying = not flying
+    if flying then
+        enableFly()
+        flyButton.Text = "Flying..."
+        print("Flying Enabled")
+    else
+        disableFly()
+        flyButton.Text = "Toggle Fly"
+        print("Flying Disabled")
+    end
+end)
+
+-- Create ESP Button
+local espButton = Instance.new("TextButton")
+espButton.Parent = tabFrame
+espButton.Size = UDim2.new(0, 200, 0, 50)
+espButton.Position = UDim2.new(0.5, -100, 0, 170)
+espButton.Text = "Toggle ESP"
+espButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+espButton.BackgroundColor3 = Color3.fromRGB(255, 105, 180)
+
+-- ESP functionality
+local espEnabled = false
+local glowEffect = {}
+
+local function enableESP()
+    for _, target in pairs(game.Players:GetPlayers()) do
+        if target.Character and target.Character:FindFirstChild("Head") then
+            local character = target.Character
+            -- Add a glow effect to the player's character
+            local outline = Instance.new("SelectionBox")
+            outline.Parent = character
+            outline.Adornee = character
+            outline.LineThickness = 0.1
+            outline.Color3 = Color3.fromRGB(255, 0, 0)  -- Red color for ESP glow
+            glowEffect[target] = outline
         end
     end
-end)
+end
 
--- Initial Key System: raxzyONtop
-local keyInputFrame = Instance.new("Frame")
-keyInputFrame.Size = UDim2.new(0, 300, 0, 200)
-keyInputFrame.Position = UDim2.new(0.5, -150, 0.5, -100)
-keyInputFrame.BackgroundColor3 = Color3.fromRGB(255, 182, 193)
-keyInputFrame.Parent = ScreenGui
+local function disableESP()
+    for _, outline in pairs(glowEffect) do
+        outline:Destroy()
+    end
+    glowEffect = {}
+end
 
-local keyLabel = Instance.new("TextLabel")
-keyLabel.Size = UDim2.new(0, 200, 0, 50)
-keyLabel.Position = UDim2.new(0.5, -100, 0, 10)
-keyLabel.Text = "Enter Key: raxzyONtop"
-keyLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-keyLabel.TextSize = 18
-keyLabel.BackgroundTransparency = 1
-keyLabel.Parent = keyInputFrame
-
-local keyTextBox = Instance.new("TextBox")
-keyTextBox.Size = UDim2.new(0, 200, 0, 50)
-keyTextBox.Position = UDim2.new(0.5, -100, 0, 70)
-keyTextBox.PlaceholderText = "raxzyONtop"
-keyTextBox.ClearTextOnFocus = true
-keyTextBox.Parent = keyInputFrame
-
-local submitButton = Instance.new("TextButton")
-submitButton.Size = UDim2.new(0, 200, 0, 50)
-submitButton.Position = UDim2.new(0.5, -100, 0, 130)
-submitButton.Text = "Submit"
-submitButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-submitButton.BackgroundColor3 = Color3.fromRGB(255, 105, 180) -- Pink button
-submitButton.Parent = keyInputFrame
-
--- Key Validation
-submitButton.MouseButton1Click:Connect(function()
-    if keyTextBox.Text == initialKey then
-        -- Key is correct, show Free Tab
-        keyInputFrame.Visible = false
-        FreePage.Visible = true
+espButton.MouseButton1Click:Connect(function()
+    espEnabled = not espEnabled
+    if espEnabled then
+        espButton.Text = "ESP Enabled"
+        enableESP()
     else
-        keyLabel.Text = "Invalid Key! Try Again."
-        keyLabel.TextColor3 = Color3.fromRGB(255, 0, 0) -- Red text for wrong key
+        espButton.Text = "Toggle ESP"
+        disableESP()
     end
 end)
 
--- Private/Paid Tab: Key system
-local PaidKeyTextBox = Instance.new("TextBox")
-PaidKeyTextBox.Size = UDim2.new(0, 200, 0, 50)
-PaidKeyTextBox.Position = UDim2.new(0.5, -100, 0, 70)
-PaidKeyTextBox.PlaceholderText = "Enter Paid Key"
-PaidKeyTextBox.ClearTextOnFocus = true
-PaidKeyTextBox.Parent = PaidPage
+-- Create Speed Slider
+local speedSlider = Instance.new("TextButton")
+speedSlider.Parent = tabFrame
+speedSlider.Size = UDim2.new(0, 200, 0, 50)
+speedSlider.Position = UDim2.new(0.5, -100, 0, 230)
+speedSlider.Text = "Speed: 50"
+speedSlider.TextColor3 = Color3.fromRGB(255, 255, 255)
+speedSlider.BackgroundColor3 = Color3.fromRGB(255, 105, 180)
 
-local PaidKeyStatusLabel = Instance.new("TextLabel")
-PaidKeyStatusLabel.Size = UDim2.new(0, 200, 0, 50)
-PaidKeyStatusLabel.Position = UDim2.new(0.5, -100, 0, 130)
-PaidKeyStatusLabel.Text = ""
-PaidKeyStatusLabel.TextColor3 = Color3.fromRGB(255, 0, 0) -- Red text for incorrect key
-PaidKeyStatusLabel.TextSize = 18
-PaidKeyStatusLabel.BackgroundTransparency = 1
-PaidKeyStatusLabel.Parent = PaidPage
+local speedValue = 50  -- Default Speed
+local function updateSpeed(newSpeed)
+    speedValue = newSpeed
+    player.Character.Humanoid.WalkSpeed = speedValue
+    speedSlider.Text = "Speed: " .. speedValue
+end
 
-local unlockPaidButton = Instance.new("TextButton")
-unlockPaidButton.Size = UDim2.new(0, 200, 0, 50)
-unlockPaidButton.Position = UDim2.new(0.5, -100, 0, 190)
-unlockPaidButton.Text = "Unlock Paid Features"
-unlockPaidButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-unlockPaidButton.BackgroundColor3 = Color3.fromRGB(255, 105, 180) -- Pink button
-unlockPaidButton.Parent = PaidPage
+-- Create Speed slider
+local speedSliderFrame = Instance.new("Frame")
+speedSliderFrame.Parent = tabFrame
+speedSliderFrame.Size = UDim2.new(0, 200, 0, 50)
+speedSliderFrame.Position = UDim2.new(0.5, -100, 0, 290)
+speedSliderFrame.BackgroundColor3 = Color3.fromRGB(200, 200, 200)
 
-unlockPaidButton.MouseButton1Click:Connect(function()
-    if PaidKeyTextBox.Text == privateKey then
-        PaidKeyStatusLabel.Text = "Features Unlocked!"
-        PaidKeyStatusLabel.TextColor3 = Color3.fromRGB(0, 255, 0) -- Green text for success
-        -- Unlock fly, speed, and aimbot features here
-    else
-        PaidKeyStatusLabel.Text = "Invalid Key! Try Again."
-    end
-end)
+for i = 1, 100 do
+    local button = Instance.new("TextButton")
+    button.Parent = speedSliderFrame
+    button.Size = UDim2.new(0, 20, 0, 20)
+    button.Position = UDim2.new(0, i * 2, 0, 0)
+    button.Text = tostring(i)
+    button.TextSize = 10
+    button.MouseButton1Click:Connect(function()
+        updateSpeed(i)
+    end)
+end
