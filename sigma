@@ -1,40 +1,191 @@
--- Basic Script for Low-End Executor Compatibility
 
--- Initial key input and private key validation
+local player = Solara.Players.LocalPlayer -- Adjusted to Solara's player system
+local character = player.Character or player.CharacterAdded:Wait()
+local humanoid = character:WaitForChild("Humanoid")
+local camera = workspace.CurrentCamera
+
+-- Initial Key: raxzyONtop
 local initialKey = "raxzyONtop"
+
+-- Private/Paid Key: 80BADF611E8BE210EBD5E767B
 local privateKey = "80BADF611E8BE210EBD5E767B"
 
--- Create the initial key input system
-local function createKeyInputFrame()
-    local ScreenGui = Instance.new("ScreenGui")
-    ScreenGui.Parent = game.Players.LocalPlayer.PlayerGui
+-- Create GUI for Solara (assuming Solara has its own GUI system)
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Name = "LockOnGui"
+ScreenGui.Parent = player.PlayerGui -- Make sure this is compatible with Solara's PlayerGui system
+ScreenGui.BackgroundColor3 = Color3.fromRGB(255, 182, 193) -- Pink background for the entire GUI
 
-    local inputFrame = Instance.new("Frame")
-    inputFrame.Size = UDim2.new(0, 300, 0, 200)
-    inputFrame.Position = UDim2.new(0.5, -150, 0.5, -100)
-    inputFrame.BackgroundColor3 = Color3.fromRGB(255, 182, 193)
-    inputFrame.Parent = ScreenGui
+-- Add a "Raxzy" label at the top of the GUI
+local TitleLabel = Instance.new("TextLabel")
+TitleLabel.Size = UDim2.new(0, 200, 0, 50)
+TitleLabel.Position = UDim2.new(0.5, -100, 0, 10)
+TitleLabel.Text = "Raxzy"
+TitleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+TitleLabel.TextSize = 24
+TitleLabel.BackgroundTransparency = 1
+TitleLabel.Parent = ScreenGui
 
-    local keyLabel = Instance.new("TextLabel")
-    keyLabel.Size = UDim2.new(0, 200, 0, 50)
-    keyLabel.Position = UDim2.new(0.5, -100, 0, 10)
-    keyLabel.Text = "Enter Key: raxzyONtop"
-    keyLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-    keyLabel.TextSize = 18
-    keyLabel.BackgroundTransparency = 1
-    keyLabel.Parent = inputFrame
+-- Tab Buttons (Tabs under "Raxzy")
+local TabButtonFrame = Instance.new("Frame")
+TabButtonFrame.Size = UDim2.new(0, 600, 0, 50)
+TabButtonFrame.Position = UDim2.new(0.5, -300, 0, 60)
+TabButtonFrame.BackgroundColor3 = Color3.fromRGB(255, 182, 193) -- Pink background for tab buttons
+TabButtonFrame.BackgroundTransparency = 0.5
+TabButtonFrame.Parent = ScreenGui
 
-    local keyTextBox = Instance.new("TextBox")
-    keyTextBox.Size = UDim2.new(0, 200, 0, 50)
-    keyTextBox.Position = UDim2.new(0.5, -100, 0, 70)
-    keyTextBox.PlaceholderText = "raxzyONtop"
-    keyTextBox.ClearTextOnFocus = true
-    keyTextBox.Parent = inputFrame
+-- Free Tab (ESP) and Private/Paid Tab (Key system)
+local FreeTab = Instance.new("TextButton")
+FreeTab.Size = UDim2.new(0, 300, 0, 50)
+FreeTab.Position = UDim2.new(0, 0, 0, 0)
+FreeTab.Text = "Free"
+FreeTab.TextColor3 = Color3.fromRGB(255, 255, 255)
+FreeTab.BackgroundColor3 = Color3.fromRGB(255, 105, 180) -- Lighter pink for the Free tab
+FreeTab.Parent = TabButtonFrame
 
-    local submitButton = Instance.new("TextButton")
-    submitButton.Size = UDim2.new(0, 200, 0, 50)
-    submitButton.Position = UDim2.new(0.5, -100, 0, 130)
-    submitButton.Text = "Submit"
-    submitButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-    submitButton.BackgroundColor3 = Color3.fromRGB(255, 105, 180)
-    submitButton.Parent = i
+local PaidTab = Instance.new("TextButton")
+PaidTab.Size = UDim2.new(0, 300, 0, 50)
+PaidTab.Position = UDim2.new(0, 300, 0, 0)
+PaidTab.Text = "Private/Paid"
+PaidTab.TextColor3 = Color3.fromRGB(255, 255, 255)
+PaidTab.BackgroundColor3 = Color3.fromRGB(255, 105, 180) -- Lighter pink for the Paid tab
+PaidTab.Parent = TabButtonFrame
+
+-- Create pages for each tab
+local FreePage = Instance.new("Frame")
+FreePage.Size = UDim2.new(0, 600, 0, 300)
+FreePage.Position = UDim2.new(0.5, -300, 0, 120)
+FreePage.BackgroundTransparency = 1
+FreePage.Visible = false -- Initially hidden, will be shown after key is entered
+FreePage.Parent = ScreenGui
+
+local PaidPage = Instance.new("Frame")
+PaidPage.Size = UDim2.new(0, 600, 0, 300)
+PaidPage.Position = UDim2.new(0.5, -300, 0, 120)
+PaidPage.BackgroundTransparency = 1
+PaidPage.Visible = false
+PaidPage.Parent = ScreenGui
+
+-- Free Tab: ESP (Extra Sensory Perception)
+local ESPLabel = Instance.new("TextLabel")
+ESPLabel.Size = UDim2.new(0, 200, 0, 50)
+ESPLabel.Position = UDim2.new(0.5, -100, 0, 70)
+ESPLabel.Text = "ESP (Free Feature)"
+ESPLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+ESPLabel.TextSize = 18
+ESPLabel.BackgroundTransparency = 1
+ESPLabel.Parent = FreePage
+
+-- Placeholder ESP functionality (can be customized further for real ESP effects)
+local function createESP(player)
+    local espPart = Instance.new("Part")
+    espPart.Size = Vector3.new(1, 1, 1)
+    espPart.Shape = Enum.PartType.Ball
+    espPart.Color = Color3.fromRGB(255, 0, 0) -- Red ESP
+    espPart.Anchored = true
+    espPart.CanCollide = false
+    espPart.Parent = workspace
+    espPart.Position = player.Character.PrimaryPart.Position + Vector3.new(0, 5, 0)
+
+    -- Simple loop to update ESP position (we can improve this for real ESP effects)
+    game:GetService("RunService").Heartbeat:Connect(function()
+        if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+            espPart.Position = player.Character.HumanoidRootPart.Position + Vector3.new(0, 5, 0)
+        end
+    end)
+end
+
+-- Button to toggle ESP on the Free Page
+local ESPButton = Instance.new("TextButton")
+ESPButton.Size = UDim2.new(0, 200, 0, 50)
+ESPButton.Position = UDim2.new(0.5, -100, 0, 150)
+ESPButton.Text = "Toggle ESP"
+ESPButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+ESPButton.BackgroundColor3 = Color3.fromRGB(255, 105, 180) -- Pink button
+ESPButton.Parent = FreePage
+
+ESPButton.MouseButton1Click:Connect(function()
+    for _, targetPlayer in pairs(Solara.Players:GetPlayers()) do
+        if targetPlayer ~= player then
+            createESP(targetPlayer)
+        end
+    end
+end)
+
+-- Initial Key System: raxzyONtop
+local keyInputFrame = Instance.new("Frame")
+keyInputFrame.Size = UDim2.new(0, 300, 0, 200)
+keyInputFrame.Position = UDim2.new(0.5, -150, 0.5, -100)
+keyInputFrame.BackgroundColor3 = Color3.fromRGB(255, 182, 193)
+keyInputFrame.Parent = ScreenGui
+
+local keyLabel = Instance.new("TextLabel")
+keyLabel.Size = UDim2.new(0, 200, 0, 50)
+keyLabel.Position = UDim2.new(0.5, -100, 0, 10)
+keyLabel.Text = "Enter Key: raxzyONtop"
+keyLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+keyLabel.TextSize = 18
+keyLabel.BackgroundTransparency = 1
+keyLabel.Parent = keyInputFrame
+
+local keyTextBox = Instance.new("TextBox")
+keyTextBox.Size = UDim2.new(0, 200, 0, 50)
+keyTextBox.Position = UDim2.new(0.5, -100, 0, 70)
+keyTextBox.PlaceholderText = "raxzyONtop"
+keyTextBox.ClearTextOnFocus = true
+keyTextBox.Parent = keyInputFrame
+
+local submitButton = Instance.new("TextButton")
+submitButton.Size = UDim2.new(0, 200, 0, 50)
+submitButton.Position = UDim2.new(0.5, -100, 0, 130)
+submitButton.Text = "Submit"
+submitButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+submitButton.BackgroundColor3 = Color3.fromRGB(255, 105, 180) -- Pink button
+submitButton.Parent = keyInputFrame
+
+-- Key Validation
+submitButton.MouseButton1Click:Connect(function()
+    if keyTextBox.Text == initialKey then
+        -- Key is correct, show Free Tab
+        keyInputFrame.Visible = false
+        FreePage.Visible = true
+    else
+        keyLabel.Text = "Invalid Key! Try Again."
+        keyLabel.TextColor3 = Color3.fromRGB(255, 0, 0) -- Red text for wrong key
+    end
+end)
+
+-- Private/Paid Tab: Key system
+local PaidKeyTextBox = Instance.new("TextBox")
+PaidKeyTextBox.Size = UDim2.new(0, 200, 0, 50)
+PaidKeyTextBox.Position = UDim2.new(0.5, -100, 0, 70)
+PaidKeyTextBox.PlaceholderText = "Enter Paid Key"
+PaidKeyTextBox.ClearTextOnFocus = true
+PaidKeyTextBox.Parent = PaidPage
+
+local PaidKeyStatusLabel = Instance.new("TextLabel")
+PaidKeyStatusLabel.Size = UDim2.new(0, 200, 0, 50)
+PaidKeyStatusLabel.Position = UDim2.new(0.5, -100, 0, 130)
+PaidKeyStatusLabel.Text = ""
+PaidKeyStatusLabel.TextColor3 = Color3.fromRGB(255, 0, 0) -- Red text for incorrect key
+PaidKeyStatusLabel.TextSize = 18
+PaidKeyStatusLabel.BackgroundTransparency = 1
+PaidKeyStatusLabel.Parent = PaidPage
+
+local unlockPaidButton = Instance.new("TextButton")
+unlockPaidButton.Size = UDim2.new(0, 200, 0, 50)
+unlockPaidButton.Position = UDim2.new(0.5, -100, 0, 190)
+unlockPaidButton.Text = "Unlock Paid Features"
+unlockPaidButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+unlockPaidButton.BackgroundColor3 = Color3.fromRGB(255, 105, 180) -- Pink button
+unlockPaidButton.Parent = PaidPage
+
+unlockPaidButton.MouseButton1Click:Connect(function()
+    if PaidKeyTextBox.Text == privateKey then
+        PaidKeyStatusLabel.Text = "Features Unlocked!"
+        PaidKeyStatusLabel.TextColor3 = Color3.fromRGB(0, 255, 0) -- Green text for success
+        -- Unlock fly, speed, and aimbot features here
+    else
+        PaidKeyStatusLabel.Text = "Invalid Key! Try Again."
+    end
+end)
