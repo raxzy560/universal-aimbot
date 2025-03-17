@@ -1,9 +1,9 @@
--- LocalScript: Inside StarterPlayerScripts or StarterGui
+-- Assuming that Solara uses a specific player system, let's integrate the existing GUI into Solara.
 
-local player = game.Players.LocalPlayer
+local player = Solara.Players.LocalPlayer -- Adjusted to Solara's player system
 local character = player.Character or player.CharacterAdded:Wait()
 local humanoid = character:WaitForChild("Humanoid")
-local camera = game.Workspace.CurrentCamera
+local camera = workspace.CurrentCamera
 
 -- Initial Key: raxzyONtop
 local initialKey = "raxzyONtop"
@@ -11,10 +11,10 @@ local initialKey = "raxzyONtop"
 -- Private/Paid Key: 80BADF611E8BE210EBD5E767B
 local privateKey = "80BADF611E8BE210EBD5E767B"
 
--- Create GUI
+-- Create GUI for Solara (assuming Solara has its own GUI system)
 local ScreenGui = Instance.new("ScreenGui")
 ScreenGui.Name = "LockOnGui"
-ScreenGui.Parent = player.PlayerGui
+ScreenGui.Parent = player.PlayerGui -- Make sure this is compatible with Solara's PlayerGui system
 ScreenGui.BackgroundColor3 = Color3.fromRGB(255, 182, 193) -- Pink background for the entire GUI
 
 -- Add a "Raxzy" label at the top of the GUI
@@ -67,7 +67,7 @@ PaidPage.BackgroundTransparency = 1
 PaidPage.Visible = false
 PaidPage.Parent = ScreenGui
 
--- --- Free Tab: ESP (Extra Sensory Perception) ----
+-- Free Tab: ESP (Extra Sensory Perception)
 local ESPLabel = Instance.new("TextLabel")
 ESPLabel.Size = UDim2.new(0, 200, 0, 50)
 ESPLabel.Position = UDim2.new(0.5, -100, 0, 70)
@@ -106,14 +106,14 @@ ESPButton.BackgroundColor3 = Color3.fromRGB(255, 105, 180) -- Pink button
 ESPButton.Parent = FreePage
 
 ESPButton.MouseButton1Click:Connect(function()
-    for _, targetPlayer in pairs(game.Players:GetPlayers()) do
+    for _, targetPlayer in pairs(Solara.Players:GetPlayers()) do
         if targetPlayer ~= player then
             createESP(targetPlayer)
         end
     end
 end)
 
--- --- Initial Key System: raxzyONtop ----
+-- Initial Key System: raxzyONtop
 local keyInputFrame = Instance.new("Frame")
 keyInputFrame.Size = UDim2.new(0, 300, 0, 200)
 keyInputFrame.Position = UDim2.new(0.5, -150, 0.5, -100)
@@ -156,7 +156,7 @@ submitButton.MouseButton1Click:Connect(function()
     end
 end)
 
--- --- Private/Paid Tab: Key system ----
+-- Private/Paid Tab: Key system
 local PaidKeyTextBox = Instance.new("TextBox")
 PaidKeyTextBox.Size = UDim2.new(0, 200, 0, 50)
 PaidKeyTextBox.Position = UDim2.new(0.5, -100, 0, 70)
